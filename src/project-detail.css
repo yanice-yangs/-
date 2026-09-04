@@ -1,0 +1,17 @@
+.project-detail { position:fixed; inset:0; z-index:180; overflow-x:hidden; overflow-y:auto; color:#f8f1f6; background:#0a0709; overscroll-behavior:contain; }
+.project-card-hit { position:absolute; z-index:3; inset:0; }
+.project-detail-nav { position:sticky; top:0; z-index:3; display:grid; grid-template-columns:1fr auto 1fr; align-items:center; min-height:82px; padding:14px var(--pad); border-bottom:1px solid rgba(255,255,255,.16); background:rgba(10,7,9,.82); backdrop-filter:blur(18px); }
+.project-detail-nav>div { display:flex; flex-direction:column; align-items:center; gap:4px; }
+.project-detail-nav strong { font-size:17px; }
+.project-detail-nav span,.project-detail-back { font-size:9px; letter-spacing:.13em; }
+.project-detail-nav>span:last-child { justify-self:end; color:#ec009b; }
+.project-detail-intro { width:min(1700px,calc(100% - var(--pad)*2)); margin:0 auto; padding:clamp(90px,12vw,190px) 0 clamp(70px,9vw,140px); }
+.project-detail-intro>span { color:#ec009b; font-size:10px; letter-spacing:.18em; }
+.project-detail-intro h1 { margin:24px 0 35px; color:transparent; font-size:clamp(64px,10vw,180px); line-height:.82; letter-spacing:-.075em; -webkit-text-stroke:1px #f8f1f6; }
+.project-detail-intro p { max-width:720px; margin:0; color:#a79ca3; line-height:1.8; }
+.project-slides { width:min(1700px,calc(100% - var(--pad)*2)); margin:0 auto; }
+.project-slides figure { margin:0 0 clamp(50px,7vw,110px); }
+.project-slides figure>span { display:block; margin-bottom:12px; color:#8e838a; font-size:9px; letter-spacing:.15em; }
+.project-slides img { display:block; width:100%; height:auto; background:#191116; box-shadow:0 25px 90px rgba(0,0,0,.38); }
+.project-detail-footer { display:grid; min-height:35vh; place-items:center; color:#ec009b; font-size:clamp(24px,4vw,64px); letter-spacing:-.04em; }
+@media(max-width:640px){.project-detail-nav{grid-template-columns:1fr auto;min-height:68px}.project-detail-nav>div{align-items:flex-end}.project-detail-nav>span:last-child{display:none}.project-detail-intro h1{font-size:17vw}}

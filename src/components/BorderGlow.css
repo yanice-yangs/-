@@ -1,0 +1,238 @@
+.border-glow-card {
+  --edge-proximity: 0;
+  --cursor-angle: 45deg;
+  --color-sensitivity: calc(var(--edge-sensitivity) + 20);
+  position: relative;
+  display: grid;
+  isolation: isolate;
+  overflow: visible;
+  border: 1px solid rgba(24, 12, 32, .18);
+  border-radius: var(--border-radius);
+  background: var(--card-bg);
+  transform: translate3d(0, 0, .01px);
+}
+
+.border-glow-card::before,
+.border-glow-card::after,
+.border-glow-card > .edge-light {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  opacity: calc((var(--edge-proximity) - var(--color-sensitivity)) / (100 - var(--color-sensitivity)));
+  transition: opacity .2s ease-out;
+  pointer-events: none;
+}
+
+.border-glow-card:not(:hover)::before,
+.border-glow-card:not(:hover)::after,
+.border-glow-card:not(:hover) > .edge-light {
+  opacity: 0;
+  transition-duration: .65s;
+}
+
+.border-glow-card::before {
+  border: 1px solid transparent;
+  background:
+    linear-gradient(var(--card-bg) 0 100%) padding-box,
+    linear-gradient(transparent 0 100%) border-box,
+    var(--gradient-1) border-box,
+    var(--gradient-2) border-box,
+    var(--gradient-3) border-box,
+    var(--gradient-4) border-box,
+    var(--gradient-5) border-box,
+    var(--gradient-6) border-box,
+    var(--gradient-7) border-box;
+  mask-image: conic-gradient(
+    from var(--cursor-angle) at center,
+    #000 calc(var(--cone-spread) * 1%),
+    transparent calc((var(--cone-spread) + 15) * 1%),
+    transparent calc((100 - var(--cone-spread) - 15) * 1%),
+    #000 calc((100 - var(--cone-spread)) * 1%)
+  );
+}
+
+.border-glow-card::after {
+  background:
+    var(--gradient-1), var(--gradient-2), var(--gradient-3),
+    var(--gradient-4), var(--gradient-5), var(--gradient-6), var(--gradient-7);
+  opacity: calc(var(--fill-opacity) * (var(--edge-proximity) - var(--color-sensitivity)) / (100 - var(--color-sensitivity)));
+  mix-blend-mode: multiply;
+}
+
+.border-glow-card > .edge-light {
+  inset: calc(var(--glow-padding) * -1);
+  z-index: 2;
+  mask-image: conic-gradient(from var(--cursor-angle) at center, #000 2.5%, transparent 10%, transparent 90%, #000 97.5%);
+  opacity: calc((var(--edge-proximity) - var(--edge-sensitivity)) / (100 - var(--edge-sensitivity)));
+  mix-blend-mode: plus-lighter;
+}
+
+.border-glow-card > .edge-light::before {
+  content: '';
+  position: absolute;
+  inset: var(--glow-padding);
+  border-radius: inherit;
+  box-shadow:
+    inset 0 0 0 1px var(--glow-0),
+    inset 0 0 5px var(--glow-2),
+    inset 0 0 18px var(--glow-4),
+    0 0 3px var(--glow-1),
+    0 0 12px var(--glow-3),
+    0 0 30px var(--glow-5);
+}
+
+.border-glow-inner {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  min-height: inherit;
+  overflow: hidden;
+}
+
+.skills-grid .border-glow-card.skill-card {
+  padding: 0;
+  background: var(--card-bg);
+  color: #f8f0f6;
+  border-color: rgba(236, 0, 155, .24);
+  box-shadow: 0 18px 50px rgba(38, 5, 27, .12);
+}
+
+.skills-grid .border-glow-card.skill-card:hover {
+  background: var(--card-bg);
+  color: #f8f0f6;
+  border-color: rgba(236, 0, 155, .55);
+  transform: translateY(-9px);
+  box-shadow: 0 26px 64px rgba(70, 5, 48, .2);
+}
+
+.skills-grid .border-glow-card.skill-card:hover p,
+.skills-grid .border-glow-card.skill-card:hover small {
+  color: inherit;
+}
+
+.skill-card-content {
+  position: relative;
+  display: flex;
+  width: 100%;
+  min-height: inherit;
+  padding: 30px;
+  flex-direction: column;
+  justify-content: space-between;
+  background:
+    linear-gradient(145deg, rgba(236, 0, 155, .08), transparent 38%),
+    repeating-linear-gradient(90deg, transparent 0 49px, rgba(255, 255, 255, .018) 50px);
+}
+
+.skill-card-content::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 30px;
+  width: 72px;
+  height: 3px;
+  background: #ec009b;
+  box-shadow: 0 0 18px rgba(236, 0, 155, .5);
+}
+
+.skills-grid {
+  gap: 16px;
+  border: 0;
+}
+
+.skills-grid .skill-top {
+  align-items: center;
+  color: #ff65c8;
+}
+
+.skills-grid .skill-top > span {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: .14em;
+}
+
+.skills-grid .skill-top svg {
+  width: 34px;
+  height: 34px;
+  padding: 8px;
+  opacity: 1;
+  border: 1px solid rgba(236, 0, 155, .38);
+  border-radius: 50%;
+  transition: transform .45s cubic-bezier(.16, 1, .3, 1), background .3s, color .3s;
+}
+
+.skills-grid .skill-card:hover .skill-top svg {
+  color: #160b13;
+  background: #ec009b;
+  transform: rotate(45deg);
+}
+
+.skills-grid .skill-card small {
+  color: #ec009b;
+  font-size: 9px;
+  letter-spacing: .18em;
+}
+
+.skills-grid .skill-card h3 {
+  margin: 12px 0 20px;
+  color: #fff8fd;
+  font-size: clamp(23px, 1.7vw, 30px);
+  letter-spacing: -.04em;
+}
+
+.skills-grid .skill-card p {
+  color: rgba(248, 230, 243, .66);
+  font-size: 14px;
+  line-height: 1.8;
+}
+
+.skills-grid .tags { gap: 7px; }
+
+.skills-grid .tags span {
+  padding: 7px 11px;
+  color: #f6badf;
+  border-color: rgba(236, 0, 155, .42);
+  background: rgba(236, 0, 155, .05);
+}
+
+.skills-grid .skill-card:hover .tags span {
+  color: #ffd7f0;
+  border-color: rgba(236, 0, 155, .72);
+  background: rgba(236, 0, 155, .12);
+}
+
+.experience-strip > span {
+  text-align: center;
+}
+
+.experience-strip > div {
+  grid-template-columns: 1fr;
+  justify-items: center;
+  gap: 7px;
+  padding-block: 24px;
+  text-align: center;
+}
+
+@media (max-width: 1000px) {
+  .skills-grid { gap: 14px; }
+}
+
+@media (max-width: 640px) {
+  .skills-grid { gap: 12px; }
+  .skill-card-content { padding: 26px; }
+  .skill-card-content::before { left: 26px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .border-glow-card,
+  .border-glow-card::before,
+  .border-glow-card::after,
+  .border-glow-card > .edge-light {
+    transition: none !important;
+  }
+
+  .skills-grid .border-glow-card.skill-card:hover {
+    transform: none;
+  }
+}

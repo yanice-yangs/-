@@ -1,0 +1,52 @@
+.motion-enabled,
+html:has(.motion-enabled) {
+  overflow-x: clip;
+}
+
+.opening {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: grid;
+  grid-template-rows: 1fr 1fr;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.opening-panel { background: #ec009b; transform-origin: center top; }
+.opening-panel-b { background: #110814; transform-origin: center bottom; }
+.opening-mark {
+  position: absolute;
+  z-index: 2;
+  top: 50%;
+  left: 50%;
+  color: #fff;
+  font-size: clamp(10px, .9vw, 15px);
+  font-weight: 600;
+  letter-spacing: .24em;
+  white-space: nowrap;
+  transform: translate(-50%, -50%);
+}
+
+.motion-enabled .nav { transform: translateY(-24px); }
+.motion-enabled .hero-bottom,
+.motion-enabled .hero-status { transform: translateY(32px); }
+.opening-panel,
+.opening-mark,
+.motion-enabled .hero-title-wrap h1,
+.motion-enabled .hero-sculpture { will-change: transform, opacity, clip-path; }
+
+@media (max-width: 640px) {
+  .opening-mark { font-size: 9px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .opening { display: none; }
+  .hero-title-wrap h1,
+  .work-title h2,
+  .ability-intro h2,
+  .contact-main h2,
+  .project-card,
+  .project-art,
+  .skill-card { will-change: auto; }
+}

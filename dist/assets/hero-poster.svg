@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080">
+  <defs>
+    <radialGradient id="a"><stop stop-color="#9c3bff"/><stop offset=".4" stop-color="#39105f"/><stop offset="1" stop-color="#07030b"/></radialGradient>
+    <filter id="b"><feTurbulence baseFrequency=".006" numOctaves="3" seed="9"/><feDisplacementMap in="SourceGraphic" scale="130"/></filter>
+  </defs>
+  <rect width="1920" height="1080" fill="#07030b"/>
+  <circle cx="1320" cy="480" r="610" fill="url(#a)" filter="url(#b)" opacity=".95"/>
+  <circle cx="1400" cy="420" r="270" fill="none" stroke="#caff2b" stroke-width="2" opacity=".18"/>
+</svg>
