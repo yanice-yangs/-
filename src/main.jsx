@@ -1,6 +1,6 @@
 import React, { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { createRoot } from 'react-dom/client'
-import { ArrowDownRight, ArrowUpRight, Mail, MoveRight, Sparkles } from 'lucide-react'
+import { ArrowDownRight, ArrowUpRight, Eye, Heart, Mail, MoveRight, Sparkles } from 'lucide-react'
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import './styles.css'
@@ -21,6 +21,91 @@ const skills = [
   { no: 'C.', title: '多领域视觉表达', en: 'VISUAL DESIGN', text: '覆盖品牌、包装、UI 界面、版式与标志设计，将概念转化为完整的视觉成果。', tags: ['PACKAGING', 'UI', 'LAYOUT'] },
   { no: 'D.', title: '沟通与项目协作', en: 'TEAMWORK', text: '通过沟通、调研与协调解决项目落地问题，并分享 Illustrator、AE 动效与 AIGC 基础知识。', tags: ['RESEARCH', 'SHARING', 'TEAM'] },
 ]
+
+function HeroEngagement() {
+  const [visitors, setVisitors] = useState(null)
+  const [likes, setLikes] = useState(null)
+  const [liked, setLiked] = useState(() => window.localStorage.getItem('portfolio-liked') === 'true')
+  const [likePending, setLikePending] = useState(false)
+
+  useEffect(() => {
+    const controller = new AbortController()
+    const loadStats = async () => {
+      const today = new Date().toISOString().slice(0, 10)
+      const shouldCountVisit = window.localStorage.getItem('portfolio-last-visit') !== today
+      try {
+        const response = await fetch('/api/stats', {
+          method: shouldCountVisit ? 'POST' : 'GET',
+          headers: shouldCountVisit ? { 'Content-Type': 'application/json' } : undefined,
+          body: shouldCountVisit ? JSON.stringify({ action: 'visit' }) : undefined,
+          signal: controller.signal,
+        })
+        if (!response.ok) throw new Error('Stats service unavailable')
+        const data = await response.json()
+        setVisitors(Number(data.visitors) || 0)
+        setLikes(Number(data.likes) || 0)
+        if (shouldCountVisit) window.localStorage.setItem('portfolio-last-visit', today)
+      } catch (error) {
+        if (error.name !== 'AbortError') {
+          const localVisits = Number(window.localStorage.getItem('portfolio-visit-fallback')) || 0
+          const nextVisits = shouldCountVisit ? localVisits + 1 : localVisits
+          if (shouldCountVisit) {
+            window.localStorage.setItem('portfolio-last-visit', today)
+            window.localStorage.setItem('portfolio-visit-fallback', String(nextVisits))
+          }
+          setVisitors(nextVisits)
+          setLikes(Number(window.localStorage.getItem('portfolio-like-fallback')) || 0)
+        }
+      }
+    }
+    loadStats()
+    return () => controller.abort()
+  }, [])
+
+  const handleLike = async () => {
+    if (liked || likePending) return
+    const previousLikes = likes || 0
+    setLiked(true)
+    setLikePending(true)
+    setLikes(previousLikes + 1)
+    window.localStorage.setItem('portfolio-liked', 'true')
+    window.localStorage.setItem('portfolio-like-fallback', String(previousLikes + 1))
+
+    try {
+      const response = await fetch('/api/stats', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'like' }),
+      })
+      if (!response.ok) throw new Error('Stats service unavailable')
+      const data = await response.json()
+      setVisitors(Number(data.visitors) || visitors || 0)
+      setLikes(Number(data.likes) || previousLikes + 1)
+    } catch {
+      // Keep the optimistic local value so a third-party outage never blocks the hero.
+    } finally {
+      setLikePending(false)
+    }
+  }
+
+  const formatCount = value => value === null ? '···' : new Intl.NumberFormat('en-US').format(value)
+
+  return (
+    <aside className="hero-data-panel" aria-label="网站互动数据">
+      <div className="hero-data-heading"><span>LIVE SIGNAL</span><i /></div>
+      <div className="hero-data-items">
+        <div className="hero-data-item">
+          <Eye size={15} strokeWidth={1.5} />
+          <span><small>VISITORS</small><strong>{formatCount(visitors)}</strong></span>
+        </div>
+        <button className="hero-like" type="button" aria-pressed={liked} disabled={likePending || liked} onClick={handleLike}>
+          <Heart size={15} strokeWidth={1.5} fill={liked ? 'currentColor' : 'none'} />
+          <span><small>{liked ? 'APPRECIATED' : 'APPRECIATE'}</small><strong>{formatCount(likes)}</strong></span>
+        </button>
+      </div>
+    </aside>
+  )
+}
 
 function ProjectDetail({ project }) {
   if (!project) return null
@@ -158,12 +243,13 @@ function App() {
       const context = gsap.context(() => {
         const opening = gsap.timeline({ defaults: { ease: 'expo.inOut' } })
         gsap.set('.hero-title-motion', { clipPath: 'inset(0 100% 0 0)', yPercent: 46, scaleX: 0.72, transformOrigin: 'center center' })
-        gsap.set(['.nav', '.hero-bottom', '.hero-status'], { autoAlpha: 0 })
+        gsap.set(['.nav', '.hero-bottom', '.hero-status', '.hero-data-panel'], { autoAlpha: 0 })
+        gsap.set('.hero-data-panel', { y: 24 })
 
         opening
           .to('.nav', { autoAlpha: 1, y: 0, duration: 0.8, ease: 'power3.out' }, 0)
           .to('.hero-title-motion', { clipPath: 'inset(0 0% 0 0)', yPercent: 0, scaleX: 1, duration: 1.3 }, 0.05)
-          .to(['.hero-bottom', '.hero-status'], { autoAlpha: 1, y: 0, duration: 0.8, stagger: 0.1, ease: 'power3.out' }, 0.72)
+          .to(['.hero-bottom', '.hero-data-panel', '.hero-status'], { autoAlpha: 1, y: 0, duration: 0.8, stagger: 0.1, ease: 'power3.out' }, 0.72)
           .call(() => ScrollTrigger.refresh())
 
         gsap.from('.about .section-head', {
@@ -298,6 +384,7 @@ function App() {
             <span className="sculpture-caption">EXPERIMENT 001 — CREATIVE MATTER</span>
           </div>
           <div className="hero-content page-width">
+            <HeroEngagement />
             <div className="hero-bottom">
               <p className="hero-manifesto">让想象拥有形状，<br/>让设计产生<span>引力。</span><small>AIGC · BRAND · VISUAL</small></p>
               <a href="#work" className="scroll-link"><span>探索我的作品<br/><small>SELECTED WORK / 2025—26</small></span><ArrowDownRight /></a>
