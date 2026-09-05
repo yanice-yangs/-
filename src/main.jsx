@@ -22,7 +22,7 @@ const skills = [
   { no: 'D.', title: '沟通与项目协作', en: 'TEAMWORK', text: '通过沟通、调研与协调解决项目落地问题，并分享 Illustrator、AE 动效与 AIGC 基础知识。', tags: ['RESEARCH', 'SHARING', 'TEAM'] },
 ]
 
-function HeroEngagement() {
+function usePortfolioEngagement() {
   const [visitors, setVisitors] = useState(null)
   const [likes, setLikes] = useState(null)
   const [liked, setLiked] = useState(() => window.localStorage.getItem('portfolio-liked') === 'true')
@@ -31,28 +31,22 @@ function HeroEngagement() {
   useEffect(() => {
     const controller = new AbortController()
     const loadStats = async () => {
-      const today = new Date().toISOString().slice(0, 10)
-      const shouldCountVisit = window.localStorage.getItem('portfolio-last-visit') !== today
       try {
         const response = await fetch('/api/stats', {
-          method: shouldCountVisit ? 'POST' : 'GET',
-          headers: shouldCountVisit ? { 'Content-Type': 'application/json' } : undefined,
-          body: shouldCountVisit ? JSON.stringify({ action: 'visit' }) : undefined,
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'visit' }),
           signal: controller.signal,
         })
         if (!response.ok) throw new Error('Stats service unavailable')
         const data = await response.json()
         setVisitors(Number(data.visitors) || 0)
         setLikes(Number(data.likes) || 0)
-        if (shouldCountVisit) window.localStorage.setItem('portfolio-last-visit', today)
       } catch (error) {
         if (error.name !== 'AbortError') {
           const localVisits = Number(window.localStorage.getItem('portfolio-visit-fallback')) || 0
-          const nextVisits = shouldCountVisit ? localVisits + 1 : localVisits
-          if (shouldCountVisit) {
-            window.localStorage.setItem('portfolio-last-visit', today)
-            window.localStorage.setItem('portfolio-visit-fallback', String(nextVisits))
-          }
+          const nextVisits = localVisits + 1
+          window.localStorage.setItem('portfolio-visit-fallback', String(nextVisits))
           setVisitors(nextVisits)
           setLikes(Number(window.localStorage.getItem('portfolio-like-fallback')) || 0)
         }
@@ -88,19 +82,26 @@ function HeroEngagement() {
     }
   }
 
-  const formatCount = value => value === null ? '···' : new Intl.NumberFormat('en-US').format(value)
+  return { visitors, likes, liked, likePending, handleLike }
+}
+
+function EngagementPanel({ visitors, likes, liked, likePending, handleLike, placement = 'hero' }) {
+  const formatCount = value => value === null ? '···' : new Intl.NumberFormat('zh-CN').format(value)
 
   return (
-    <aside className="hero-data-panel" aria-label="网站互动数据">
-      <div className="hero-data-heading"><span>LIVE SIGNAL</span><i /></div>
-      <div className="hero-data-items">
-        <div className="hero-data-item">
-          <Eye size={15} strokeWidth={1.5} />
-          <span><small>VISITORS</small><strong>{formatCount(visitors)}</strong></span>
+    <aside className={`engagement-panel ${placement === 'hero' ? 'hero-engagement' : 'contact-engagement'}`} aria-label="网站访问与点赞数据">
+      <div className="engagement-heading">
+        <span>访客互动</span><i />
+        <em>{placement === 'hero' ? '每一次到访，都让灵感继续生长' : '点个赞留下回应；想合作或学做网站，欢迎发邮件'}</em>
+      </div>
+      <div className="engagement-items">
+        <div className="engagement-stat">
+          <Eye size={19} strokeWidth={1.4} />
+          <span><small>累计访问</small><strong>{formatCount(visitors)}</strong></span>
         </div>
-        <button className="hero-like" type="button" aria-pressed={liked} disabled={likePending || liked} onClick={handleLike}>
-          <Heart size={15} strokeWidth={1.5} fill={liked ? 'currentColor' : 'none'} />
-          <span><small>{liked ? 'APPRECIATED' : 'APPRECIATE'}</small><strong>{formatCount(likes)}</strong></span>
+        <button className="engagement-like" type="button" aria-pressed={liked} disabled={likePending || liked} onClick={handleLike}>
+          <Heart size={19} strokeWidth={1.4} fill={liked ? 'currentColor' : 'none'} />
+          <span><small>{liked ? '感谢你的喜欢' : '为作品点赞'}</small><strong>{formatCount(likes)}</strong></span>
         </button>
       </div>
     </aside>
@@ -143,6 +144,7 @@ function App() {
   const [scrolled, setScrolled] = useState(false)
   const [menu, setMenu] = useState(false)
   const [plumsReady, setPlumsReady] = useState(false)
+  const engagement = usePortfolioEngagement()
   const [activeDetail, setActiveDetail] = useState(() => window.location.hash.startsWith('#project-') ? window.location.hash.replace('#project-', '') : '')
   useEffect(() => {
     let frame = 0
@@ -243,13 +245,13 @@ function App() {
       const context = gsap.context(() => {
         const opening = gsap.timeline({ defaults: { ease: 'expo.inOut' } })
         gsap.set('.hero-title-motion', { clipPath: 'inset(0 100% 0 0)', yPercent: 46, scaleX: 0.72, transformOrigin: 'center center' })
-        gsap.set(['.nav', '.hero-bottom', '.hero-status', '.hero-data-panel'], { autoAlpha: 0 })
-        gsap.set('.hero-data-panel', { y: 24 })
+        gsap.set(['.nav', '.hero-bottom', '.hero-status', '.hero-engagement'], { autoAlpha: 0 })
+        gsap.set('.hero-engagement', { y: 24 })
 
         opening
           .to('.nav', { autoAlpha: 1, y: 0, duration: 0.8, ease: 'power3.out' }, 0)
           .to('.hero-title-motion', { clipPath: 'inset(0 0% 0 0)', yPercent: 0, scaleX: 1, duration: 1.3 }, 0.05)
-          .to(['.hero-bottom', '.hero-data-panel', '.hero-status'], { autoAlpha: 1, y: 0, duration: 0.8, stagger: 0.1, ease: 'power3.out' }, 0.72)
+          .to(['.hero-bottom', '.hero-engagement', '.hero-status'], { autoAlpha: 1, y: 0, duration: 0.8, stagger: 0.1, ease: 'power3.out' }, 0.72)
           .call(() => ScrollTrigger.refresh())
 
         gsap.from('.about .section-head', {
@@ -330,7 +332,7 @@ function App() {
           yPercent: 55, scaleY: 0.68, clipPath: 'inset(100% 0 0 0)', transformOrigin: 'center bottom',
           duration: 1.55, ease: 'expo.out',
         })
-        gsap.from(['.contact-main > p', '.mail-link', '.contact footer'], {
+        gsap.from(['.contact-main > p', '.contact-engagement', '.contact footer'], {
           scrollTrigger: { trigger: '#contact', start: 'top 58%' },
           y: 65, autoAlpha: 0, duration: 1, stagger: 0.15, ease: 'power4.out',
         })
@@ -384,7 +386,7 @@ function App() {
             <span className="sculpture-caption">EXPERIMENT 001 — CREATIVE MATTER</span>
           </div>
           <div className="hero-content page-width">
-            <HeroEngagement />
+            <EngagementPanel {...engagement} />
             <div className="hero-bottom">
               <p className="hero-manifesto">让想象拥有形状，<br/>让设计产生<span>引力。</span><small>AIGC · BRAND · VISUAL</small></p>
               <a href="#work" className="scroll-link"><span>探索我的作品<br/><small>SELECTED WORK / 2025—26</small></span><ArrowDownRight /></a>
@@ -521,7 +523,10 @@ function App() {
             <div className="contact-main">
               <p><span className="live-dot"/> AVAILABLE FOR OPPORTUNITIES</p>
               <h2>LET'S MAKE<br/><span>SOMETHING</span><br/>MEMORABLE.</h2>
-              <a href="mailto:3244693649@qq.com" className="mail-link">发送邮件 <MoveRight /></a>
+              <div className="contact-actions">
+                <a href="mailto:3244693649@qq.com" className="mail-link">发送邮件 <MoveRight /></a>
+                <EngagementPanel {...engagement} placement="contact" />
+              </div>
             </div>
             <footer>
               <div className="brand footer-brand">一颗梅子酱<span>®</span></div>
