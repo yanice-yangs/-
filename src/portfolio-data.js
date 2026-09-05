@@ -24,12 +24,20 @@ const detailPageCounts = {
   'tao-an': 6,
 }
 
+// These source slides contain identifiable personal names. Keep them out of the
+// public portfolio so the deployed project does not expose private information.
+const excludedDetailSlides = {
+  yibumian: new Set([22, 24, 25]),
+}
+
 export const projects = entries.map(([title, en, type, pages, source, note, detail], index) => ({
   id: String(index + 1).padStart(2, '0'), title, en, type, pages, note, detail,
   image: typeof source === 'number'
     ? `/assets/portfolio/project-${String(source).padStart(2, '0')}.webp`
     : `/assets/portfolio/${source}`,
   slides: detail
-    ? Array.from({ length: detailPageCounts[detail] }, (_, slideIndex) => `/assets/portfolio/${detail}/${detail === 'yibumian' ? 'slide' : 'page'}-${String(slideIndex + 1).padStart(2, '0')}.webp`)
+    ? Array.from({ length: detailPageCounts[detail] }, (_, slideIndex) => slideIndex + 1)
+      .filter(slideNumber => !excludedDetailSlides[detail]?.has(slideNumber))
+      .map(slideNumber => `/assets/portfolio/${detail}/${detail === 'yibumian' ? 'slide' : 'page'}-${String(slideNumber).padStart(2, '0')}.webp`)
     : undefined,
 }))
