@@ -2,5 +2,6 @@ node_modules/
 dist/
 .pnpm-store/
 .vite/
+.tmp-wrangler/
 *.log
 .DS_Store

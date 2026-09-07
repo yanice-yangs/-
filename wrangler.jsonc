@@ -1,0 +1,13 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "meizizhadan",
+  "compatibility_date": "2026-09-07",
+  "pages_build_output_dir": "./dist",
+  "d1_databases": [
+    {
+      "binding": "PORTFOLIO_DB",
+      "database_name": "portfolio-stats",
+      "database_id": "54e8e04e-2448-43fc-b05e-5643bd318c3a"
+    }
+  ]
+}

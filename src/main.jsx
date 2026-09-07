@@ -25,8 +25,16 @@ const skills = [
 function usePortfolioEngagement() {
   const [visitors, setVisitors] = useState(null)
   const [likes, setLikes] = useState(null)
-  const [liked, setLiked] = useState(() => window.localStorage.getItem('portfolio-liked') === 'true')
+  const [liked, setLiked] = useState(false)
   const [likePending, setLikePending] = useState(false)
+  const visitorIdRef = useRef(null)
+
+  if (!visitorIdRef.current) {
+    const storedId = window.localStorage.getItem('portfolio-visitor-id')
+    const visitorId = storedId || (window.crypto.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(36).slice(2)}-${Math.random().toString(36).slice(2)}`)
+    visitorIdRef.current = visitorId
+    if (!storedId) window.localStorage.setItem('portfolio-visitor-id', visitorId)
+  }
 
   useEffect(() => {
     const controller = new AbortController()
@@ -35,13 +43,14 @@ function usePortfolioEngagement() {
         const response = await fetch('/api/stats', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ action: 'visit' }),
+          body: JSON.stringify({ action: 'visit', visitorId: visitorIdRef.current }),
           signal: controller.signal,
         })
         if (!response.ok) throw new Error('Stats service unavailable')
         const data = await response.json()
         setVisitors(Number(data.visitors) || 0)
         setLikes(Number(data.likes) || 0)
+        setLiked(Boolean(data.likedToday))
       } catch (error) {
         if (error.name !== 'AbortError') {
           const localVisits = Number(window.localStorage.getItem('portfolio-visit-fallback')) || 0
@@ -62,21 +71,21 @@ function usePortfolioEngagement() {
     setLiked(true)
     setLikePending(true)
     setLikes(previousLikes + 1)
-    window.localStorage.setItem('portfolio-liked', 'true')
-    window.localStorage.setItem('portfolio-like-fallback', String(previousLikes + 1))
 
     try {
       const response = await fetch('/api/stats', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'like' }),
+        body: JSON.stringify({ action: 'like', visitorId: visitorIdRef.current }),
       })
       if (!response.ok) throw new Error('Stats service unavailable')
       const data = await response.json()
       setVisitors(Number(data.visitors) || visitors || 0)
       setLikes(Number(data.likes) || previousLikes + 1)
+      setLiked(Boolean(data.likedToday))
     } catch {
-      // Keep the optimistic local value so a third-party outage never blocks the hero.
+      setLiked(false)
+      setLikes(previousLikes)
     } finally {
       setLikePending(false)
     }
